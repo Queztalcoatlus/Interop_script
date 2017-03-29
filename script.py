@@ -1,5 +1,4 @@
 #!/usr/bin/python
-#import interop_client_lib
 from sys import version_info
 python_version = version_info[0]
 print python_version
@@ -21,28 +20,50 @@ display those obstacles onscreen
 
 '''
 
-#The host name and port number will be specified at the competition. For testing, use localhost as the name and 8080 for the port
+
+
+#The host name and port number will be specified at the competition. For testing, use localhost as the name and 8000 for the port
 confirmed_hostname_and_portnum=False
+confirmed_username_and_password=False
 
 if python_version==2:
+	print "using Python 2"
 	while not confirmed_hostname_and_portnum:
-		print "using Python 2"
 		hostname = raw_input("Please enter the host name: ")
 		portnum = raw_input("Please enter the port number: ")
-		confirmation_prompt = "Host name is " + hostname + " and port number is " + portnum + ". (y to confirm): "
-		confirm = raw_input(confirmation_prompt)
-		if confirm=='y' or confirm=='Y':
-			confirmed_hostname_and_portnum=True
+		url_confirm = raw_input("Host name is " + hostname + " and port number is " + portnum + ". (y to confirm): ")
+		if (url_confirm=='y' or url_confirm=='Y'):
+			confirmed_hostname_and_portnum = True
+
+	while not confirmed_username_and_password:
+		username = raw_input("Please enter your username: ")
+		password = raw_input("Please enter your password: ")
+		login_confirm = raw_input("Username is " + username + " and password is " + password + ". (y to confirm): ")
+		if (login_confirm=='y' or login_confirm=='Y'):
+			confirmed_username_and_password=True
 
 
 elif python_version==3:
+	print "using Python 3"
 	while not confirmed_hostname_and_portnum:
-		print "using Python 3"
 		hostname = input("Please enter the host name: ")
 		portnum = input("Please enter the port number: ")
-		confirmation_prompt = "Host name is " + hostname + " and port number is " + portnum + ". (y to confirm): "
-		confirm = input(confirmation_prompt)
-			if confirm=='y' or confirm=='Y':
-				confirmed_hostname_and_portnum=True
+		url_confirm = input("Host name is " + hostname + " and port number is " + portnum + ". (y to confirm): ")
+		if (url_confirm=='y' or url_confirm=='Y'):
+			confirmed_hostname_and_portnum = True
+
+	while not confirmed_username_and_password:
+		username = input("Please enter your username: ")
+		password = input("Please enter your password: ")
+		login_confirm = input("Username is " + username + " and password is " + password + ". (y to confirm): ")
+		if (login_confirm=='y' or login_confirm=='Y'):
+			confirmed_username_and_password=True
+
+
+import interop_client_lib
+url = "http://" + hostname + ":" + portnum 
+print url
+#client = interop.AsyncClient(url, )
+
 
 
