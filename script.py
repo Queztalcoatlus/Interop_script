@@ -1,8 +1,13 @@
 #!/usr/bin/python
 #import interop_client_lib 
-from interop_client_lib import AsyncClient
-#import mavlink_apm
+from interop import AsyncClient
+import signal
+
+#import MAVProxy
+#from pymavlink import mavutils
+import os
 import time
+import threading #will need this later when I do multithreaded stuff
 
 #check version
 from sys import version_info
@@ -52,6 +57,7 @@ This script has only been tested in Python 2 as of now.
 
 #The host name and port number will be specified at the competition. For testing, use localhost as the name and 8000 for the port
 
+'''
 confirmed_hostname_and_portnum=False
 confirmed_username_and_password=False
 
@@ -93,9 +99,26 @@ hostname="localhost"
 portnum="8000"
 username="testuser"
 password="testpass"
-'''
+mavlink_stream = "127.0.0.1:14550"
+
 url = "http://" + hostname + ":" + portnum 
 print url
+
+#launch process that listens for 
+pid = os.fork()
+if(pid==0): #new process
+	args = ["interop_cli.py", "--url", url, "--username", username,  "mavlink", "--device", mavlink_stream]
+	os.execv("interop_cli.py", args)
+	exit(0); 
+
+#make sure the execed process gets exited on ^c 
+def signal_handler(signal, frame):
+	os.kill(pid, signal)
+	exit(0)
+
+signal.signal(signal.SIGINT, signal_handler)
+
+
 client_instance = AsyncClient(url, username, password)
 while(True):
 	obstacles=client_instance.get_obstacles() 
@@ -103,3 +126,7 @@ while(True):
 		for obstacle in type:
 			print obstacle
 	time.sleep(1)
+
+
+
+
