@@ -10,7 +10,7 @@ import pprint
 import sys
 import time
 
-from interop import Client
+from interop import AsyncClient
 from interop import Target
 from interop import Telemetry
 from proxy_mavlink import proxy_mavlink
@@ -148,7 +148,7 @@ forward as telemetry to interop server.''')
         password = getpass.getpass('Interoperability Password: ')
 
     # Create client and dispatch subcommand.
-    client = Client(args.url, args.username, password)
+    client = AsyncClient(args.url, args.username, password)
     args.func(args, client)
 
 
