@@ -99,7 +99,7 @@ hostname="localhost"
 portnum="8000"
 username="testuser"
 password="testpass"
-mavlink_stream = "127.0.0.1:14550"
+mavlink_stream = "127.0.0.1:14551"
 
 url = "http://" + hostname + ":" + portnum 
 print url
@@ -107,7 +107,7 @@ print url
 #launch process that listens for 
 pid = os.fork()
 if(pid==0): #new process
-	args = ["interop_cli.py", "--url", url, "--username", username,  "mavlink", "--device", mavlink_stream]
+	args = ["interop_cli.py", "--url", url, "--username", username, "--password", password,  "mavlink", "--device", mavlink_stream]
 	os.execv("interop_cli.py", args)
 	exit(0); 
 
