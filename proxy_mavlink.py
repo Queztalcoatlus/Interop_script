@@ -36,27 +36,41 @@ def proxy_mavlink(device, client):
         client: Interop Client with which to send telemetry packets.
     """
     # Create the MAVLink connection.
-    mav = mavutil.mavlink_connection(device, autoreconnect=True)
-
+    print(device)
+    mav = mavutil.mavlink_connection(device, baud=57600, autoreconnect=True)
     # Track rates.
     sent_since_print = 0
     last_print = time.time()
 
     # Continuously forward packets.
     while True:
-        # Get packet.
-        msg = mav.recv_match(type='GLOBAL_POSITION_INT',
+        # Get packets
+        alt_and_hdg = mav.recv_match(type= 'VFR_HUD',#'GLOBAL_POSITION_INT',
                              blocking=True,
                              timeout=10.0)
-        if msg is None:
+        #msg = mav.recv_msg()
+        if alt_and_hdg is None:
             logger.critical(
                 'Did not receive MAVLink packet for over 10 seconds.')
             sys.exit(-1)
+
+        long_and_lat = mav.recv_match(type= 'GPS_RAW_INT',#'GLOBAL_POSITION_INT',
+                             blocking=True,
+                             timeout=10.0)
+
+        if long_and_lat is None:
+            logger.critical(
+                'Did not receive MAVLink packet for over 10 seconds.')
+            sys.exit(-1)
+
         # Convert to telemetry.
-        telemetry = Telemetry(latitude=mavlink_latlon(msg.lat),
-                              longitude=mavlink_latlon(msg.lon),
-                              altitude_msl=mavlink_alt(msg.alt),
-                              uas_heading=mavlink_heading(msg.hdg))
+        
+        telemetry = Telemetry(latitude=mavlink_latlon(long_and_lat.lat),
+                              longitude=mavlink_latlon(long_and_lat.lon),
+                              altitude_msl=mavlink_alt(alt_and_hdg.alt*1000),#mavlink_alt(msg.alt),
+                              uas_heading=alt_and_hdg.heading)#mavlink_heading(alt_and_hdg.heading))
+        
+        print(telemetry)
         # Forward telemetry.
         try:
             client.post_telemetry(telemetry)
@@ -71,3 +85,4 @@ def proxy_mavlink(device, client):
             logger.info('Telemetry rate: %f', sent_since_print / since_print)
             sent_since_print = 0
             last_print = now
+        

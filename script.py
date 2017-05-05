@@ -99,21 +99,30 @@ hostname="localhost"
 portnum="8000"
 username="testuser"
 password="testpass"
-mavlink_stream = "127.0.0.1:14551"
+mavlink_stream = "udp:127.0.0.1:14551"
+usbport_id = "/dev/tty.usbserial-AL02UQVX"
 
 url = "http://" + hostname + ":" + portnum 
 print url
 
-#launch process that listens for 
-pid = os.fork()
-if(pid==0): #new process
+#launch mavproxy in a new process
+#this will only work on a mac with mavproxy installed
+mp_pid = os.fork()
+if(mp_pid==0):
+	args = ["mavproxy.py", "--daemon", "--out=udp:127.0.0.1:14551", "--out=udp:127.0.0.1:14552", "--master="+usbport_id]
+	os.execvp("mavproxy.py", args)
+
+#launch interop_cli.py in a new process
+ic_pid = os.fork()
+if(ic_pid==0): #new process
 	args = ["interop_cli.py", "--url", url, "--username", username, "--password", password,  "mavlink", "--device", mavlink_stream]
 	os.execv("interop_cli.py", args)
 	exit(0); 
 
-#make sure the execed process gets exited on ^c 
+#make sure the execed processes gets exited on ^c 
 def signal_handler(signal, frame):
-	os.kill(pid, signal)
+	os.kill(mp_pid, signal)
+	os.kill(ic_pid, signal)
 	exit(0)
 
 signal.signal(signal.SIGINT, signal_handler)
@@ -122,9 +131,10 @@ signal.signal(signal.SIGINT, signal_handler)
 client_instance = AsyncClient(url, username, password)
 while(True):
 	obstacles=client_instance.get_obstacles() 
-	for type in obstacles.result(timeout=1):
-		for obstacle in type:
-			print obstacle
+	
+	#for type in obstacles.result(timeout=1):
+		#for obstacle in type:
+			#print obstacle
 	time.sleep(1)
 
 
