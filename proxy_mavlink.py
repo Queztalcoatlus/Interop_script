@@ -4,6 +4,7 @@
 import logging
 import sys
 import time
+
 from pymavlink import mavutil
 
 from interop import Telemetry
@@ -38,6 +39,7 @@ def proxy_mavlink(device, client):
     # Create the MAVLink connection.
     print(device)
     mav = mavutil.mavlink_connection(device, baud=57600, autoreconnect=True)
+
     # Track rates.
     sent_since_print = 0
     last_print = time.time()
@@ -45,6 +47,7 @@ def proxy_mavlink(device, client):
     # Continuously forward packets.
     while True:
         # Get packets
+        start = time.time()
         alt_and_hdg = mav.recv_match(type= 'VFR_HUD',#'GLOBAL_POSITION_INT',
                              blocking=True,
                              timeout=10.0)
@@ -53,7 +56,7 @@ def proxy_mavlink(device, client):
             logger.critical(
                 'Did not receive MAVLink packet for over 10 seconds.')
             sys.exit(-1)
-
+       	#received_VFR = time.time()
         long_and_lat = mav.recv_match(type= 'GPS_RAW_INT',#'GLOBAL_POSITION_INT',
                              blocking=True,
                              timeout=10.0)
@@ -62,7 +65,7 @@ def proxy_mavlink(device, client):
             logger.critical(
                 'Did not receive MAVLink packet for over 10 seconds.')
             sys.exit(-1)
-
+        #received_GPS = time.time()
         # Convert to telemetry.
         
         telemetry = Telemetry(latitude=mavlink_latlon(long_and_lat.lat),
@@ -77,6 +80,8 @@ def proxy_mavlink(device, client):
         except:
             logger.exception('Failed to post telemetry to interop.')
             sys.exit(-1)
+
+        #posted_telemetry = time.time()
         # Track telemetry rates.
         sent_since_print += 1
         now = time.time()
@@ -85,4 +90,7 @@ def proxy_mavlink(device, client):
             logger.info('Telemetry rate: %f', sent_since_print / since_print)
             sent_since_print = 0
             last_print = now
+
+        #print("took %s to get VFR packet, %s to get GPS packet, and %s to post telemetry.\n" % (str(received_VFR-start), str(received_GPS-received_VFR), str(posted_telemetry-received_GPS)))
+
         
